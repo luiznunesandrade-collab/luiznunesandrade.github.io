@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Jogo da Bolinhas</title>
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial;
+  background: radial-gradient(circle, #111, #000);
+  color: white;
+}
+
+canvas { display:block; }
+
+#menu, #end {
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  text-align:center;
+}
+
+#hud {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:rgba(0,0,0,0.5);
+  padding:10px;
+  border-radius:10px;
+  display:none;
+}
+
+button {
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:#6c5ce7;
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+#end {
+  display:none;
+  background:rgba(0,0,0,0.85);
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="menu">
+  <h1>JOGO DA BOLINHAS</h1>
+  <button onclick="startGame()">Jogar</button>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  Pontos: <span id="score">0</span><br>
+  Combo: <span id="combo">x1</span><br>
+  Tempo: <span id="time">30</span>
+</div>
+
+<!-- END -->
+<div id="end">
+  <h1>TEMPO ACABOU</h1>
+  <p>Pontos: <span id="finalScore">0</span></p>
+  <button onclick="startGame()">Jogar novamente</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* UI */
+const menu = document.getElementById("menu");
+const hud = document.getElementById("hud");
+const end = document.getElementById("end");
+
+const scoreEl = document.getElementById("score");
+const comboEl = document.getElementById("combo");
+const timeEl = document.getElementById("time");
+const finalScoreEl = document.getElementById("finalScore");
+
+/* GAME STATE */
+let game = false;
+let score = 0;
+let combo = 1;
+let time = 30;
+
+/* SOUND */
+function plop(){
+  const audio = new AudioContext();
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = 400;
+
+  gain.gain.value = 0.1;
+
+  osc.connect(gain);
+  gain.connect(audio.destination);
+
+  osc.start();
+  osc.stop(audio.currentTime + 0.06);
+}
+
+/* PARTICLES */
+class Particle {
+  constructor(x,y,color){
+    this.x=x;
+    this.y=y;
+    this.dx=(Math.random()-0.5)*5;
+    this.dy=(Math.random()-0.5)*5;
+    this.life=25;
+    this.color=color;
+  }
+
+  update(){
+    this.x+=this.dx;
+    this.y+=this.dy;
+    this.life--;
+
+    ctx.fillStyle=this.color;
+    ctx.fillRect(this.x,this.y,3,3);
+  }
+}
+
+/* BALL */
+class Ball {
+  constructor(){
+    this.r=10+Math.random()*25;
+    this.x=Math.random()*canvas.width;
+    this.y=Math.random()*canvas.height;
+    this.dx=(Math.random()-0.5)*5;
+    this.dy=(Math.random()-0.5)*5;
+    this.color=`hsl(${Math.random()*360},100%,60%)`;
+  }
+
+  draw(){
+    ctx.shadowColor=this.color;
+    ctx.shadowBlur=20;
+
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=this.color;
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+  }
+
+  update(){
+    if(this.x+this.r>canvas.width||this.x-this.r<0) this.dx*=-1;
+    if(this.y+this.r>canvas.height||this.y-this.r<0) this.dy*=-1;
+
+    this.x+=this.dx;
+    this.y+=this.dy;
+
+    this.draw();
+  }
+
+  hit(x,y){
+    return Math.hypot(this.x-x,this.y-y)<this.r;
+  }
+}
+
+let balls=[];
+let particles=[];
+
+/* SPAWN */
+function spawn(){
+  balls.push(new Ball());
+}
+
+/* START GAME */
+function startGame(){
+  menu.style.display="none";
+  end.style.display="none";
+  hud.style.display="block";
+
+  game=true;
+  score=0;
+  combo=1;
+  time=30;
+
+  balls=[];
+  particles=[];
+
+  for(let i=0;i<15;i++) spawn();
+
+  startTimer();
+}
+
+/* TIMER */
+function startTimer(){
+  let t=setInterval(()=>{
+    if(!game) return;
+
+    time--;
+    timeEl.innerText=time;
+
+    if(time<=0){
+      clearInterval(t);
+      finish();
+    }
+  },1000);
+}
+
+/* FINISH */
+function finish(){
+  game=false;
+  hud.style.display="none";
+  end.style.display="flex";
+
+  finalScoreEl.innerText=score;
+}
+
+/* CLICK */
+canvas.addEventListener("click",(e)=>{
+  if(!game) return;
+
+  let x=e.clientX;
+  let y=e.clientY;
+
+  balls.forEach(b=>{
+    if(b.hit(x,y)){
+      score+=combo;
+      combo++;
+
+      scoreEl.innerText=score;
+      comboEl.innerText="x"+combo;
+
+      plop();
+
+      for(let i=0;i<10;i++){
+        particles.push(new Particle(b.x,b.y,b.color));
+      }
+
+      b.x=Math.random()*canvas.width;
+      b.y=Math.random()*canvas.height;
+    }
+  });
+});
+
+/* LOOP */
+function loop(){
+  requestAnimationFrame(loop);
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(game){
+    balls.forEach(b=>b.update());
+  }
+
+  particles.forEach(p=>p.update());
+  particles=particles.filter(p=>p.life>0);
+}
+
+loop();
+</script>
+
+</body>
+</html>
