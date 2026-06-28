@@ -55,20 +55,19 @@ button {
 
 <body>
 
-<!-- MENU -->
 <div id="menu">
   <h1>JOGO DA BOLINHAS</h1>
   <button onclick="startGame()">Jogar</button>
 </div>
 
-<!-- HUD -->
+
 <div id="hud">
   Pontos: <span id="score">0</span><br>
   Combo: <span id="combo">x1</span><br>
   Tempo: <span id="time">30</span>
 </div>
 
-<!-- END -->
+
 <div id="end">
   <h1>TEMPO ACABOU</h1>
   <p>Pontos: <span id="finalScore">0</span></p>
@@ -89,7 +88,7 @@ window.addEventListener("resize", () => {
   canvas.height = window.innerHeight;
 });
 
-/* UI */
+
 const menu = document.getElementById("menu");
 const hud = document.getElementById("hud");
 const end = document.getElementById("end");
@@ -99,13 +98,13 @@ const comboEl = document.getElementById("combo");
 const timeEl = document.getElementById("time");
 const finalScoreEl = document.getElementById("finalScore");
 
-/* GAME STATE */
+
 let game = false;
 let score = 0;
 let combo = 1;
 let time = 30;
 
-/* SOUND */
+
 function plop(){
   const audio = new AudioContext();
   const osc = audio.createOscillator();
@@ -123,7 +122,7 @@ function plop(){
   osc.stop(audio.currentTime + 0.06);
 }
 
-/* PARTICLES */
+
 class Particle {
   constructor(x,y,color){
     this.x=x;
@@ -144,7 +143,7 @@ class Particle {
   }
 }
 
-/* BALL */
+
 class Ball {
   constructor(){
     this.r=10+Math.random()*25;
@@ -185,12 +184,12 @@ class Ball {
 let balls=[];
 let particles=[];
 
-/* SPAWN */
+
 function spawn(){
   balls.push(new Ball());
 }
 
-/* START GAME */
+
 function startGame(){
   menu.style.display="none";
   end.style.display="none";
@@ -209,7 +208,7 @@ function startGame(){
   startTimer();
 }
 
-/* TIMER */
+
 function startTimer(){
   let t=setInterval(()=>{
     if(!game) return;
@@ -224,7 +223,6 @@ function startTimer(){
   },1000);
 }
 
-/* FINISH */
 function finish(){
   game=false;
   hud.style.display="none";
@@ -233,7 +231,7 @@ function finish(){
   finalScoreEl.innerText=score;
 }
 
-/* CLICK */
+
 canvas.addEventListener("click",(e)=>{
   if(!game) return;
 
@@ -260,7 +258,7 @@ canvas.addEventListener("click",(e)=>{
   });
 });
 
-/* LOOP */
+
 function loop(){
   requestAnimationFrame(loop);
 
