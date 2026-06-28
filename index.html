@@ -1,144 +1,103 @@
-<<!DOCTYPE html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Jogo das Bolinhas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Clica na Bola</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
+*{
     margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Manrope",sans-serif;
+}
+
+body{
+    background:#f7f8fa;
     overflow:hidden;
-    background:black;
+    user-select:none;
 }
 
-canvas{
-    display:block;
+header{
+    text-align:center;
+    margin-top:45px;
 }
 
-#painel{
+h1{
+    font-size:48px;
+    font-weight:700;
+    color:#111827;
+    letter-spacing:-1px;
+}
+
+#placar{
+    margin-top:10px;
+    font-size:20px;
+    color:#6b7280;
+    font-weight:500;
+}
+
+#bola{
+    width:85px;
+    height:85px;
+    border-radius:50%;
+    background:#2563eb;
     position:absolute;
-    top:10px;
-    left:10px;
-    background:white;
-    padding:10px;
+    cursor:pointer;
+    box-shadow:0 12px 35px rgba(37,99,235,.25);
+    transition:.18s ease;
 }
 
-button{
-    padding:10px;
+#bola:hover{
+    transform:scale(1.08);
+}
+
+#bola:active{
+    transform:scale(.95);
 }
 </style>
 
 </head>
 <body>
 
-<div id="painel">
-    Pontos: <span id="pontos">0</span>
-    <br><br>
-    <button onclick="comecar()">Começar</button>
-</div>
+<header>
+    <h1>Clica na Bola</h1>
+    <div id="placar">Pontos: 0</div>
+</header>
 
-<canvas id="tela"></canvas>
+<div id="bola"></div>
 
 <script>
+const bola = document.getElementById("bola");
+const placar = document.getElementById("placar");
 
-var canvas = document.getElementById("tela");
-var ctx = canvas.getContext("2d");
+let pontos = 0;
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function moverBola(){
+    const topoMin = 150;
 
-var bolas = [];
-var pontos = 0;
-var jogando = false;
+    const x = Math.random() * (window.innerWidth - bola.offsetWidth);
+    const y = topoMin + Math.random() * (window.innerHeight - topoMin - bola.offsetHeight);
 
-function comecar(){
-
-    bolas = [];
-    pontos = 0;
-    jogando = true;
-
-    document.getElementById("pontos").innerHTML = pontos;
-
-    for(var i=0;i<10;i++){
-
-        bolas.push({
-            x:Math.random()*canvas.width,
-            y:Math.random()*canvas.height,
-            r:20,
-            dx:2,
-            dy:2
-        });
-
-    }
-
+    bola.style.left = x + "px";
+    bola.style.top = y + "px";
 }
 
-canvas.onclick = function(e){
+bola.addEventListener("click",()=>{
+    pontos++;
+    placar.textContent = "Pontos: " + pontos;
+    moverBola();
+});
 
-    if(!jogando){
-        return;
-    }
+window.addEventListener("resize",moverBola);
 
-    var x = e.clientX;
-    var y = e.clientY;
-
-    for(var i=0;i<bolas.length;i++){
-
-        var b = bolas[i];
-
-        var d = Math.sqrt((b.x-x)*(b.x-x)+(b.y-y)*(b.y-y));
-
-        if(d < b.r){
-
-            pontos++;
-
-            document.getElementById("pontos").innerHTML = pontos;
-
-            b.x = Math.random()*canvas.width;
-            b.y = Math.random()*canvas.height;
-
-        }
-
-    }
-
-}
-
-function desenhar(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    if(jogando){
-
-        for(var i=0;i<bolas.length;i++){
-
-            var b = bolas[i];
-
-            b.x += b.dx;
-            b.y += b.dy;
-
-            if(b.x > canvas.width || b.x < 0){
-                b.dx = -b.dx;
-            }
-
-            if(b.y > canvas.height || b.y < 0){
-                b.dy = -b.dy;
-            }
-
-            ctx.beginPath();
-            ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-            ctx.fillStyle = "red";
-            ctx.fill();
-
-        }
-
-    }
-
-    requestAnimationFrame(desenhar);
-
-}
-
-desenhar();
-
+moverBola();
 </script>
 
 </body>
